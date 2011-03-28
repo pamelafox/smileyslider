@@ -2,53 +2,23 @@
   var MIN = 0;
   var MAX = 10;
   
-  function moveSmileyForVal(slider, val) {
-    var smiley = slider.data('smiley');
-    var width = slider.width() - smiley.width();
-    var x = (val/MAX)*width;
-    smiley.css({'left': x});
-    moveMouth(slider, val);
-  }
-  
-  function moveSmileyForX(slider, x) {
-    var smiley = slider.data('smiley');
-    var width = slider.width() - smiley.width();
-    if (x > width) x = width;
-    if (x < 0) x = 0;
-    smiley.css({'left': x});
-    
-    var val = Math.round((x/width)*MAX);
-    moveMouth(slider, val);
-  }
-  
-  function moveMouth(slider, val) {
-    slider.data('value', val);
-    var command, direction, radius, y = 25, x = 11, width = 28;
-
-    if (val == (MAX-MIN)/2) {
-      y = 25 + ((11-val)*1);
-      command = 'M ' + x + ' ' + y + ' L ' + (x+width) + ',' + y;
-    } else {
-      if (val > (MAX-MIN)/2) {
-        direction = 0;
-        radius = (14 - val) * 4;
-        y = 25 + ((11-val)*1);
-      } else {
-        direction = 1;
-        radius = (val+4) * 4;
-        y = 25 + ((11-val)*1);
-      }
-      command = 'M ' + x + ' ' + y + ' a ' + radius + ',' + radius + ' 0 0,' + direction + ' ' + width + ',0';
-    }
-    var mouth = slider.data('mouth');
-    mouth.attr('path', command);
+  function isTouchDevice() {
+    var agent = navigator.userAgent;
+    if((agent.match(/iPhone/i)) || 
+       (agent.match(/iPod/i)) || 
+       (agent.match(/android/i)) || 
+       (agent.match(/iPad/i))) return true;
+    return false;
   }
   
   var methods = {
     init: function(options) {
       var width = 50;
-   
-      this.css({height: width + 'px', width: '200px', background: '#eee', '-webkit-border-radius': '2em', position: 'relative'});   
+      var slider = this;
+      
+      this.css({height: width + 'px', width: '200px',
+                background: '#eee', position: 'relative',
+                '-webkit-border-radius': '2em', '-moz-border-radius': '2em'});   
       var smiley = $('<div class="smileyslider-smiley"></div>');
       smiley.css({cursor: 'pointer', width: width + 'px', height: width + 'px', position: 'absolute'});
       this.append(smiley);
@@ -61,25 +31,94 @@
       var mouth = paper.path('M 16 35 a 20,20 0 0,0 16,0');
       this.data('mouth', mouth);
       
-      var slider = this;
-      smiley.mousedown(function(event) {
-        slider.data('dragging', true);
-        document.onselectstart = function(){ return false; }
-      });
+      function moveSmileyForVal(val) {
+        var smiley = slider.data('smiley');
+        var width = slider.width() - smiley.width();
+        var x = (val/MAX)*width;
+        smiley.css({'left': x});
+        moveMouth(val);
+      }
 
-      $('body').mousemove(function(event) {
-        if (slider.data('dragging')) {
-          var newX = event.pageX - slider.offset().left;
-          moveSmileyForX(slider, newX);
+      function moveSmileyForX(x) {
+        var smiley = slider.data('smiley');
+        var width = slider.width() - smiley.width();
+        if (x > width) x = width;
+        if (x < 0) x = 0;
+        smiley.css({'left': x});
+
+        var val = Math.round((x/width)*MAX);
+        moveMouth(val);
+      }
+
+      function moveMouth(val) {
+        slider.data('value', val);
+        var command, direction, radius, y = 25, x = 11, width = 28;
+
+        if (val == (MAX-MIN)/2) {
+          y = 25 + ((11-val)*1);
+          command = 'M ' + x + ' ' + y + ' L ' + (x+width) + ',' + y;
+        } else {
+          if (val > (MAX-MIN)/2) {
+            direction = 0;
+            radius = (14 - val) * 4;
+            y = 25 + ((11-val)*1);
+          } else {
+            direction = 1;
+            radius = (val+4) * 4;
+            y = 25 + ((11-val)*1);
+          }
+          command = 'M ' + x + ' ' + y + ' a ' + radius + ',' + radius + ' 0 0,' + direction + ' ' + width + ',0';
         }
-      });
-
-      $('body').mouseup(function(event) {
+        var mouth = slider.data('mouth');
+        mouth.attr('path', command);
+      }
+      
+      function onDragStart() {
+        slider.data('dragging', true);
+        document.onselectstart = function() { return false; }
+      }
+      
+      function onDragEnd() {
         slider.data('dragging', false);
-        document.onselectstart = function(){ return true; }
-      });
-
-      moveSmileyForVal(this, 5);
+        document.onselectstart = function() { return true; }
+      }
+      
+      if (isTouchDevice()) {
+        smiley.bind('touchstart', function(event) {
+          event.preventDefault();
+          onDragStart();
+        }, false);
+        
+        smiley.bind('touchend', function(event) {
+          onDragEnd();
+        }, false);
+        
+        smiley.bind('touchmove', function(event) {
+          event.preventDefault();
+          if (slider.data('dragging')) {
+            var newX = event.originalEvent.touches[0].pageX- slider.offset().left;
+            moveSmileyForX(newX);
+          }
+        }, false);
+        
+      } else {
+        smiley.mousedown(function(event) {
+          onDragStart();
+        });
+        
+        $('body').mouseup(function(event) {
+          onDragEnd();
+        });
+        
+        $('body').mousemove(function(event) {
+          if (slider.data('dragging')) {
+            var newX = event.pageX - slider.offset().left;
+            moveSmileyForX(newX);
+          }
+        });
+      }
+      
+      moveSmileyForVal(5);
       return this;
     },
     val: function(v) { 
