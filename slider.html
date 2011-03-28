@@ -1,0 +1,38 @@
+<!DOCTYPE html> 
+<html lang="en">
+  <head> 
+    <meta charset="utf-8"> 
+      <title>Smiley Slider</title> 
+      <link href="http://fonts.googleapis.com/css?family=Coming+Soon:regular" rel="stylesheet" type="text/css" />
+      <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js"></script> 
+      <script src="raphael-min.js"></script> 
+      <script src="jquery.smileyslider.js"></script> 
+      <style> 
+          body {
+            font-family: 'Coming Soon', serif;
+          }
+          #main {
+              width: 800px;
+              margin: auto;
+              text-align: center;
+          }
+      </style> 
+      <script>
+$(document).ready(function() {
+  var slider = $('#slider').smileySlider();
+  var slider2 = $('#slider2').smileySlider();
+});
+      </script> 
+  </head> 
+  <body> 
+    <div id="main"> 
+    <h1>Smiley Slider jQuery Plugin</h1> 
+    <div id="slider"></div> 
+    <br>
+    <div id="slider2"></div> 
+    <div style="position:relative; top: 60px"> 
+     <p>Powered by <a href="http://jquery.com">jQuery</a>, <a href="http://raphaeljs.com/">RaphaelJS</a> and hardcore arithmetic, baby.</p> 
+    </div> 
+    </div> 
+  </body> 
+</html>
